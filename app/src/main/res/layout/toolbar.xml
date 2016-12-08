@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="?attr/colorPrimary"
+    android:theme="@style/Base.ThemeOverlay.AppCompat.Dark">
+
+    <Spinner
+        android:id="@+id/spinnerNav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/padding"
+        android:paddingStart="@dimen/padding"/>
+
+</android.support.v7.widget.Toolbar>
