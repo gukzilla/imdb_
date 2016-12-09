@@ -1,13 +1,10 @@
 package ru.gukzilla.imdb.api;
 
 import android.net.Uri;
-import android.webkit.URLUtil;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,19 +18,22 @@ import ru.gukzilla.imdb.models.Film;
 
 public class Api {
 
-    private RequestClient requestClient;
+    private RestClient restClient;
     private final String url = "http://www.omdbapi.com/";
 
     public Api(){
-        requestClient = new RequestClient();
+        restClient = new RestClient();
     }
 
     public interface SearchListener {
         void onResult(List<Film> films);
+        void onError(Exception e);
+        void onComplete();
     }
 
     public void searchAsync(String text, final SearchListener listener) {
         if(text == null || text.isEmpty()) {
+            listener.onComplete();
             return;
         }
 
@@ -47,14 +47,15 @@ public class Api {
             url = new URL(builtUri.toString());
         } catch (Exception e) {
             e.printStackTrace();
+            listener.onError(e);
         }
 
         final List<Film> films = new ArrayList<>();
-        requestClient.getAsync(url, new RequestClient.Listener() {
+        restClient.getAsync(url, new RestClient.Listener() {
             @Override
             public void onResult(Result result) {
                 if(result.code() != 200 || result.getResponseJson() == null) {
-                    listener.onResult(films);
+                    listener.onError(null);
                     return;
                 }
 
@@ -62,7 +63,7 @@ public class Api {
                 JSONArray resultsArr = search.optJSONArray(Const.Search);
 
                 if(resultsArr == null) {
-                    listener.onResult(films);
+                    listener.onError(null);
                     return;
                 }
 
@@ -70,9 +71,20 @@ public class Api {
                     JSONObject filmJs = resultsArr.optJSONObject(i);
                     films.add(new Film(filmJs));
                 }
+
                 listener.onResult(films);
+                listener.onComplete();
             }
         });
+    }
+
+    public void downloadBitmap(String url, RestClient.BitmapListener bitmapListener) {
+        try {
+            restClient.getBitmapFromURLAsync(new URL(url), bitmapListener);
+        } catch (Exception e) {
+            e.printStackTrace();
+            bitmapListener.onResult(null);
+        }
     }
 
 }

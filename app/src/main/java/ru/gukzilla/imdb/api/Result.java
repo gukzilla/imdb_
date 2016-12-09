@@ -1,5 +1,7 @@
 package ru.gukzilla.imdb.api;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -69,5 +71,20 @@ public class Result {
             e.printStackTrace();
             return null;
         }
+    }
+
+
+    public void print() {
+        // request
+        StringBuilder sb = new StringBuilder();
+        sb.append("REQ METHOD: ").append(requestMethod.name()).append("\n");
+        sb.append("REQ URL: ").append(getRequestUrl() == null ? "null" : getRequestUrl()).append("\n");
+        sb.append("REQ JSON: ").append(getRequestJson() == null ? "null" : getRequestJson()).append("\n\n\n");
+
+        // response
+        sb.append("RESP CODE: ").append(Integer.toString(code())).append("\n");
+        sb.append("RESPONSE JSON: ").append(getResponseJson() == null ? "null" : getResponseJson());
+
+        Log.i("RESULT: ", sb.toString());
     }
 }

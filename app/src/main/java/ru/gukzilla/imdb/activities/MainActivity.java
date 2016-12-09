@@ -1,4 +1,4 @@
-package ru.gukzilla.imdb;
+package ru.gukzilla.imdb.activities;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -9,11 +9,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import ru.gukzilla.imdb.R;
+import ru.gukzilla.imdb.fragments.FragmentSearch;
 
 /**
  * Created by Evgeniy on 08.12.2016.

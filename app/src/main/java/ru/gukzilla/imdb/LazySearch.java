@@ -1,5 +1,8 @@
 package ru.gukzilla.imdb;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
@@ -10,11 +13,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class LazySearch {
 
+    Handler handler;
     Timer requestTimer;
     TimerTask requestTask;
     AtomicLong timeCount = new AtomicLong(0);
     String lastSearch = "";
 
+    public LazySearch() {
+        handler = new Handler(Looper.getMainLooper());
+    }
 
     public interface SearchCallBack {
         void onFinished(String lastText);
@@ -39,8 +46,13 @@ public class LazySearch {
                 public void run() {
                     timeCount.addAndGet(100);
 
-                    if (timeCount.get() >= 500L) {
-                        endCallback.onFinished(getLastSearch());
+                    if (timeCount.get() >= 1000L) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                endCallback.onFinished(getLastSearch());
+                            }
+                        });
 
                         requestTask.cancel();
                         requestTask = null;

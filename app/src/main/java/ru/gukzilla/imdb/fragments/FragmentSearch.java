@@ -1,5 +1,6 @@
-package ru.gukzilla.imdb;
+package ru.gukzilla.imdb.fragments;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,11 +13,16 @@ import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.gukzilla.imdb.LazySearch;
+import ru.gukzilla.imdb.R;
 import ru.gukzilla.imdb.api.Api;
+import ru.gukzilla.imdb.api.RestClient;
+import ru.gukzilla.imdb.custom_views.ImgView;
 import ru.gukzilla.imdb.models.Film;
 
 /**
@@ -24,6 +30,8 @@ import ru.gukzilla.imdb.models.Film;
  */
 
 public class FragmentSearch extends Fragment {
+
+    private Api api;
 
     @Nullable
     @Override
@@ -33,11 +41,13 @@ public class FragmentSearch extends Fragment {
                 .getLayoutInflater()
                 .inflate(R.layout.fragment_search, container, false);
 
-        final Api api = new Api();
+        api = new Api();
 
-        ListView searchListViewId = (ListView) parent.findViewById(R.id.searchListViewId);
+        final ListView searchListViewId = (ListView) parent.findViewById(R.id.searchListViewId);
         final ListAdapter listAdapter = new ListAdapter();
         searchListViewId.setAdapter(listAdapter);
+
+        final View progressId = parent.findViewById(R.id.progressId);
 
         final LazySearch lazySearch = new LazySearch();
         final LazySearch.SearchCallBack searchCallBack = new LazySearch.SearchCallBack() {
@@ -46,7 +56,24 @@ public class FragmentSearch extends Fragment {
                 api.searchAsync(lastText, new Api.SearchListener() {
                     @Override
                     public void onResult(List<Film> films) {
-                        listAdapter.update(films);
+                        if(films.size() <= 0) {
+                            toastNothingFound();
+                        } else {
+                            listAdapter.update(films);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        progressId.setVisibility(View.INVISIBLE);
+                        searchListViewId.setVisibility(View.VISIBLE);
+                        toastNothingFound();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        progressId.setVisibility(View.INVISIBLE);
+                        searchListViewId.setVisibility(View.VISIBLE);
                     }
                 });
             }
@@ -61,6 +88,9 @@ public class FragmentSearch extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                progressId.setVisibility(View.VISIBLE);
+                searchListViewId.setVisibility(View.INVISIBLE);
+
                 lazySearch.search(charSequence.toString(), searchCallBack);
             }
 
@@ -73,9 +103,16 @@ public class FragmentSearch extends Fragment {
         return parent;
     }
 
+    private void toastNothingFound() {
+        Toast.makeText(getActivity(), R.string.nothingFound, Toast.LENGTH_SHORT).show();
+    }
+
     private static class ViewHolder {
-        View parent;
         TextView titleId;
+        TextView yearId;
+        ImgView imgId;
+        TextView typeId;
+
     }
 
     private class ListAdapter extends BaseAdapter {
@@ -109,11 +146,14 @@ public class FragmentSearch extends Fragment {
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
 
-            ViewHolder holder;
+            final ViewHolder holder;
             if(view == null) {
                 holder = new ViewHolder();
-                holder.parent = view = inf.inflate(R.layout.item_search_film, viewGroup, false);
+                view = inf.inflate(R.layout.item_search_film, viewGroup, false);
                 holder.titleId = (TextView) view.findViewById(R.id.titleId);
+                holder.yearId = (TextView) view.findViewById(R.id.yearId);
+                holder.typeId = (TextView) view.findViewById(R.id.typeId);
+                holder.imgId = (ImgView) view.findViewById(R.id.imgId);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -121,6 +161,23 @@ public class FragmentSearch extends Fragment {
 
             Film film = films.get(i);
             holder.titleId.setText(film.getTitle());
+            holder.yearId.setText(film.getYear());
+            holder.typeId.setText(film.getType());
+
+            if(film.getPoster() == null) {
+                holder.imgId.setVisibility(View.GONE);
+            } else {
+                api.downloadBitmap(film.getPoster(), new RestClient.BitmapListener() {
+                    @Override
+                    public void onResult(Bitmap bitmap) {
+                        if(bitmap != null) {
+                            holder.imgId.setImageBitmap(bitmap);
+                        } else {
+                            holder.imgId.setVisibility(View.GONE);
+                        }
+                    }
+                });
+            }
 
             return view;
         }
