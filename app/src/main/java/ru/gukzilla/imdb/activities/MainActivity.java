@@ -59,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
                 return item;
             }
         });
+
+        final FragmentSearch fragmentSearch = new FragmentSearch();
+        final FragmentBookmarks fragmentBookmarks = new FragmentBookmarks();
+
         spinnerNav.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
@@ -67,10 +71,10 @@ public class MainActivity extends AppCompatActivity {
 
                 switch (position) {
                     case 0:
-                        fragmentTransaction.replace(R.id.contentLayout, new FragmentSearch());
+                        fragmentTransaction.replace(R.id.contentLayout, fragmentSearch);
                         break;
                     case 1:
-                        fragmentTransaction.replace(R.id.contentLayout, new FragmentBookmarks());
+                        fragmentTransaction.replace(R.id.contentLayout, fragmentBookmarks);
                         break;
                 }
 
