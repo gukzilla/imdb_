@@ -1,121 +1,76 @@
 package ru.gukzilla.imdb.fragments;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.gukzilla.imdb.LazySearch;
 import ru.gukzilla.imdb.R;
 import ru.gukzilla.imdb.activities.VideoActivity;
 import ru.gukzilla.imdb.api.Api;
 import ru.gukzilla.imdb.api.RestClient;
 import ru.gukzilla.imdb.custom_views.ImgView;
+import ru.gukzilla.imdb.models.FullVideo;
 import ru.gukzilla.imdb.models.Video;
+import ru.gukzilla.imdb.store.BookMarksStorage;
 
 /**
  * Created by Evgeniy on 08.12.2016.
  */
 
-public class FragmentSearch extends Fragment {
+public class FragmentBookmarks extends Fragment {
 
+    private final int REQUEST_CODE = 10;
     private Api api;
+    private ListAdapter listAdapter;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        View parent = getActivity()
-                .getLayoutInflater()
-                .inflate(R.layout.fragment_search, container, false);
-
         api = new Api();
 
-        final ListView searchListViewId = (ListView) parent.findViewById(R.id.searchListViewId);
-        final ListAdapter listAdapter = new ListAdapter();
-        searchListViewId.setAdapter(listAdapter);
+        View parent = getActivity()
+                .getLayoutInflater()
+                .inflate(R.layout.fragment_bookmarks, container, false);
 
-        final View progressId = parent.findViewById(R.id.progressId);
+        final ListView bookmarksListViewId = (ListView) parent.findViewById(R.id.bookmarksListViewId);
+        listAdapter = new ListAdapter();
+        bookmarksListViewId.setAdapter(listAdapter);
 
-        searchListViewId.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        bookmarksListViewId.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 ListAdapter listAdapter = (ListAdapter) adapterView.getAdapter();
                 Video video = listAdapter.getItem(i);
-                VideoActivity.open(getActivity(), video.getImdbID());
-            }
-        });
-
-        final LazySearch lazySearch = new LazySearch();
-        final LazySearch.SearchCallBack searchCallBack = new LazySearch.SearchCallBack() {
-            @Override
-            public void onFinished(String lastText) {
-                api.searchAsync(lastText, new Api.SearchListener() {
-                    @Override
-                    public void onResult(List<Video> films) {
-                        if(films.size() <= 0) {
-                            toastNothingFound();
-                        } else {
-                            listAdapter.update(films);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        progressId.setVisibility(View.INVISIBLE);
-                        searchListViewId.setVisibility(View.VISIBLE);
-                        toastNothingFound();
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        progressId.setVisibility(View.INVISIBLE);
-                        searchListViewId.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
-        };
-
-        EditText searchId = (EditText) parent.findViewById(R.id.searchId);
-        searchId.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                progressId.setVisibility(View.VISIBLE);
-                searchListViewId.setVisibility(View.INVISIBLE);
-
-                lazySearch.search(charSequence.toString(), searchCallBack);
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
+                Intent intent = VideoActivity.getIntentForResult(getActivity(), video.getImdbID());
+                startActivityForResult(intent, REQUEST_CODE);
             }
         });
 
         return parent;
     }
 
-    private void toastNothingFound() {
-        Toast.makeText(getActivity(), R.string.nothingFound, Toast.LENGTH_SHORT).show();
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQUEST_CODE:
+                listAdapter.update();
+                break;
+        }
     }
 
     private static class ViewHolder {
@@ -129,13 +84,16 @@ public class FragmentSearch extends Fragment {
     private class ListAdapter extends BaseAdapter {
 
         LayoutInflater inf;
-        List<Video> videoLists = new ArrayList<>();
+        List<FullVideo> videoLists = new ArrayList<>();
+        BookMarksStorage bookMarksStorage;
         ListAdapter() {
             inf = getActivity().getLayoutInflater();
+            bookMarksStorage = new BookMarksStorage(getActivity());
+            update();
         }
 
-        void update(List<Video> videoLists) {
-            this.videoLists = videoLists;
+        public void update() {
+            videoLists = bookMarksStorage.getAllBookmarks();
             notifyDataSetChanged();
         }
 

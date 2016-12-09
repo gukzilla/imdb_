@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.gukzilla.imdb.models.Const;
-import ru.gukzilla.imdb.models.Film;
+import ru.gukzilla.imdb.models.FullVideo;
+import ru.gukzilla.imdb.models.Video;
 
 /**
  * Created by Evgeniy on 08.12.2016.
@@ -26,7 +27,13 @@ public class Api {
     }
 
     public interface SearchListener {
-        void onResult(List<Film> films);
+        void onResult(List<Video> videoLists);
+        void onError(Exception e);
+        void onComplete();
+    }
+
+    public interface VideoListener {
+        void onResult(FullVideo video);
         void onError(Exception e);
         void onComplete();
     }
@@ -50,7 +57,7 @@ public class Api {
             listener.onError(e);
         }
 
-        final List<Film> films = new ArrayList<>();
+        final List<Video> videoLists = new ArrayList<>();
         restClient.getAsync(url, new RestClient.Listener() {
             @Override
             public void onResult(Result result) {
@@ -69,10 +76,10 @@ public class Api {
 
                 for(int i = 0; i < resultsArr.length(); i++) {
                     JSONObject filmJs = resultsArr.optJSONObject(i);
-                    films.add(new Film(filmJs));
+                    videoLists.add(new Video(filmJs));
                 }
 
-                listener.onResult(films);
+                listener.onResult(videoLists);
                 listener.onComplete();
             }
         });
@@ -87,4 +94,41 @@ public class Api {
         }
     }
 
+
+    public void getFullVideoById(final String id, final VideoListener videoListener) {
+        Uri builtUri = Uri.parse(url)
+                .buildUpon()
+                .appendQueryParameter(Const.i, id)
+                .appendQueryParameter(Const.plot, Const.full)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            videoListener.onError(e);
+        }
+
+        restClient.getAsync(url, new RestClient.Listener() {
+            @Override
+            public void onResult(Result result) {
+                if(result.code() != 200 || result.getResponseJson() == null) {
+                    videoListener.onError(null);
+                    return;
+                }
+
+                JSONObject videoJs = result.getJSONObject();
+                if(videoJs == null) {
+                    videoListener.onError(null);
+                    return;
+                }
+
+                FullVideo video = new FullVideo(videoJs);
+
+                videoListener.onResult(video);
+                videoListener.onComplete();
+            }
+        });
+    }
 }

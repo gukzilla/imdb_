@@ -24,7 +24,7 @@ public class ImgView extends ImageView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, widthMeasureSpec / 2);
-        setMeasuredDimension(widthMeasureSpec, widthMeasureSpec / 2);
+        super.onMeasure(widthMeasureSpec, widthMeasureSpec);
+        setMeasuredDimension(widthMeasureSpec, widthMeasureSpec);
     }
 }

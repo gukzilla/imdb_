@@ -1,5 +1,7 @@
 package ru.gukzilla.imdb.models;
 
+import android.text.TextUtils;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -26,7 +28,8 @@ public class BaseObj {
     }
 
     public String getStringOrNull(String key) {
-        if(getJson().isNull(key) || getJson().optString(key).isEmpty()) return null;
+        if(getJson().isNull(key) || getJson().optString(key).isEmpty() ||
+                TextUtils.equals(getJson().optString(key), Const.NA)) return null;
 
         return getJson().optString(key);
     }

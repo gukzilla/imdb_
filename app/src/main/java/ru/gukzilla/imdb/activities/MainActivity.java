@@ -14,6 +14,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import ru.gukzilla.imdb.R;
+import ru.gukzilla.imdb.fragments.FragmentBookmarks;
 import ru.gukzilla.imdb.fragments.FragmentSearch;
 
 /**
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                         fragmentTransaction.replace(R.id.contentLayout, new FragmentSearch());
                         break;
                     case 1:
-
+                        fragmentTransaction.replace(R.id.contentLayout, new FragmentBookmarks());
                         break;
                 }
 

@@ -6,9 +6,9 @@ import org.json.JSONObject;
  * Created by Evgeniy on 08.12.2016.
  */
 
-public class Film extends BaseObj {
+public class Video extends BaseObj {
 
-    public Film(JSONObject json) {
+    public Video(JSONObject json) {
         super(json);
     }
 
