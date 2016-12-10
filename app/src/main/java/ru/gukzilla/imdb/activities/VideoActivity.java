@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import ru.gukzilla.imdb.R;
 import ru.gukzilla.imdb.api.Api;
@@ -32,6 +34,8 @@ public class VideoActivity extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
     private Api api;
     private BookMarksStorage bookMarksStorage;
+    private Menu menu;
+    private FullVideo video;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,8 +77,10 @@ public class VideoActivity extends AppCompatActivity {
         api = new Api();
         api.getFullVideoById(imdbID, new Api.VideoListener() {
             @Override
-            public void onResult(FullVideo video) {
-                load(video);
+            public void onResult(FullVideo vid) {
+                video = vid;
+                load();
+                updateMenu();
             }
 
             @Override
@@ -92,16 +98,64 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
+        return true;
+    }
+
+    private void updateMenu() {
+        if(menu == null) {
+            Log.e(TAG, "options menu not ready");
+            return;
+        }
+
+        menu.clear();
+
+        getMenuInflater().inflate(R.menu.video_activity_menu, menu);
+
+        MenuItem addToBookmarks = menu.findItem(R.id.addToBookmarks);
+        MenuItem removeFromBookmarks = menu.findItem(R.id.removeFromBookmarks);
+
+        boolean isBookmarks = bookMarksStorage.inTheBookMarks(video.getImdbID());
+
+        addToBookmarks.setVisible(!isBookmarks);
+        removeFromBookmarks.setVisible(isBookmarks);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
                 break;
+            case R.id.addToBookmarks:
+                bookMarksStorage.save(video);
+                updateMenu();
+                Toast.makeText(this, R.string.addedToBookmarks, Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.removeFromBookmarks:
+                bookMarksStorage.remove(video);
+                updateMenu();
+                Toast.makeText(this, R.string.removedFromBookmarks, Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.shareId:
+                share();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void load(final FullVideo video) {
+    private void share() {
+        String extraText = video.getTitle() + "\n" + video.getPlot();
+
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, extraText);
+        sendIntent.setType("text/plain");
+        startActivity(sendIntent);
+    }
+
+    private void load() {
         getSupportActionBar().setTitle(video.getTitle());
 
         setText(R.id.titleId, video.getTitle());
@@ -114,19 +168,6 @@ public class VideoActivity extends AppCompatActivity {
         setText(R.id.writersId, getString(R.string.writers) + ": " + video.getWriter());
         setText(R.id.typeId, getString(R.string.type) + ": " + video.getType());
         setText(R.id.fullDescriptionId, getString(R.string.plot) + ": " + video.getPlot());
-
-        CheckBox bookmarksId = (CheckBox) findViewById(R.id.bookmarksId);
-        bookmarksId.setChecked(bookMarksStorage.inTheBookMarks(video.getImdbID()));
-        bookmarksId.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                if(checked) {
-                    bookMarksStorage.save(video);
-                } else {
-                    bookMarksStorage.remove(video);
-                }
-            }
-        });
 
         final ImageView imageId = (ImageView) findViewById(R.id.imageId);
         if(video.getPoster() == null) {

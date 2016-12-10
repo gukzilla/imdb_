@@ -39,7 +39,10 @@ public class Api {
     }
 
     public void searchAsync(String text, final SearchListener listener) {
+        final List<Video> videoLists = new ArrayList<>();
+
         if(text == null || text.isEmpty()) {
+            listener.onResult(videoLists);
             listener.onComplete();
             return;
         }
@@ -57,7 +60,6 @@ public class Api {
             listener.onError(e);
         }
 
-        final List<Video> videoLists = new ArrayList<>();
         restClient.getAsync(url, new RestClient.Listener() {
             @Override
             public void onResult(Result result) {

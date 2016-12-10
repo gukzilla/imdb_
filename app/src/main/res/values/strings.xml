@@ -11,6 +11,10 @@
     <string name="actors">Actors</string>
     <string name="country">Country</string>
     <string name="addToBookmarks">Add to Bookmarks</string>
+    <string name="addedToBookmarks">Added to bookmarks</string>
+    <string name="removeFromBookmarks">Remove from bookmarks</string>
+    <string name="removedFromBookmarks">Removed from bookmarks</string>
+    <string name="share">Share</string>
     <string name="runtime">Runtime</string>
     <string name="genre">Genre</string>
     <string name="released">Released</string>

@@ -31,4 +31,8 @@ public class Const {
     public final static String Country = "Country";
     public final static String Released = "Released";
 
+    // other
+    public final static String fragment = "fragment";
+    public final static String array = "array";
+    public final static String searchText = "searchText";
 }

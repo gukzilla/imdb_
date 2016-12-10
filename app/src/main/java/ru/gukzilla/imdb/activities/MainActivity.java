@@ -60,9 +60,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final FragmentSearch fragmentSearch = new FragmentSearch();
-        final FragmentBookmarks fragmentBookmarks = new FragmentBookmarks();
-
         spinnerNav.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
@@ -71,10 +68,10 @@ public class MainActivity extends AppCompatActivity {
 
                 switch (position) {
                     case 0:
-                        fragmentTransaction.replace(R.id.contentLayout, fragmentSearch);
+                        fragmentTransaction.replace(R.id.contentLayout, new FragmentSearch());
                         break;
                     case 1:
-                        fragmentTransaction.replace(R.id.contentLayout, fragmentBookmarks);
+                        fragmentTransaction.replace(R.id.contentLayout, new FragmentBookmarks());
                         break;
                 }
 
@@ -87,5 +84,4 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
 }

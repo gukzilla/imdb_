@@ -19,13 +19,23 @@
             android:id="@+id/progressId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true" />
+            android:layout_centerInParent="true"
+            android:visibility="gone"/>
 
         <ListView
             android:id="@+id/searchListViewId"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/white" />
+
+        <TextView
+            android:id="@+id/emptyLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/nothingFound"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="@android:color/darker_gray"/>
     </RelativeLayout>
 
 

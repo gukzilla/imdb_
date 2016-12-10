@@ -25,7 +25,9 @@ import ru.gukzilla.imdb.activities.VideoActivity;
 import ru.gukzilla.imdb.api.Api;
 import ru.gukzilla.imdb.api.RestClient;
 import ru.gukzilla.imdb.custom_views.ImgView;
+import ru.gukzilla.imdb.models.Const;
 import ru.gukzilla.imdb.models.Video;
+import ru.gukzilla.imdb.store.CacheStorage;
 
 /**
  * Created by Evgeniy on 08.12.2016.
@@ -34,6 +36,8 @@ import ru.gukzilla.imdb.models.Video;
 public class FragmentSearch extends Fragment {
 
     private Api api;
+    private ListAdapter listAdapter;
+    private CacheStorage cacheStorage;
 
     @Nullable
     @Override
@@ -44,10 +48,13 @@ public class FragmentSearch extends Fragment {
                 .inflate(R.layout.fragment_search, container, false);
 
         api = new Api();
+        listAdapter = new ListAdapter();
+        cacheStorage = new CacheStorage(getActivity());
 
         final ListView searchListViewId = (ListView) parent.findViewById(R.id.searchListViewId);
-        final ListAdapter listAdapter = new ListAdapter();
+        searchListViewId.setEmptyView(parent.findViewById(R.id.emptyLayout));
         searchListViewId.setAdapter(listAdapter);
+        listAdapter.update(cacheStorage.getSavedVideoList());
 
         final View progressId = parent.findViewById(R.id.progressId);
 
@@ -63,15 +70,13 @@ public class FragmentSearch extends Fragment {
         final LazySearch lazySearch = new LazySearch();
         final LazySearch.SearchCallBack searchCallBack = new LazySearch.SearchCallBack() {
             @Override
-            public void onFinished(String lastText) {
+            public void onFinished(final String lastText) {
                 api.searchAsync(lastText, new Api.SearchListener() {
                     @Override
                     public void onResult(List<Video> films) {
-                        if(films.size() <= 0) {
-                            toastNothingFound();
-                        } else {
-                            listAdapter.update(films);
-                        }
+                        listAdapter.update(films);
+                        cacheStorage.save(Const.searchText, lastText);
+                        cacheStorage.saveVideoList(films);
                     }
 
                     @Override
@@ -91,6 +96,7 @@ public class FragmentSearch extends Fragment {
         };
 
         EditText searchId = (EditText) parent.findViewById(R.id.searchId);
+        searchId.setText(cacheStorage.getString(Const.searchText));
         searchId.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -137,6 +143,10 @@ public class FragmentSearch extends Fragment {
         void update(List<Video> videoLists) {
             this.videoLists = videoLists;
             notifyDataSetChanged();
+        }
+
+        ArrayList<Video> getVideoList() {
+            return new ArrayList<>(videoLists);
         }
 
         @Override
